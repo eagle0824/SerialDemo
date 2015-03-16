@@ -40,7 +40,7 @@ public class SerialService extends Service {
     private HandlerThread mHandlerThread;
     private BgHandler mBgHandler;
     private ByteBuffer mReadBuffer;
-    private static final int READ_BUFFER_SIZE = 256;
+    private static final int READ_BUFFER_SIZE = 1024;
     private Thread mReadThread;
     private Callback mCallback;
 
@@ -102,7 +102,9 @@ public class SerialService extends Service {
                         size = mSerialPort.read(mReadBuffer);
                         if (size > 0) {
                             byte[] data = new byte[size];
-                            System.arraycopy(mReadBuffer, 0, data, 0, size);
+                            mReadBuffer.get(data, 0, size);
+                            logD(TAG, "read size is : " + size + " data : " + new String(data));
+                            mReadBuffer.clear();
                             mHandler.obtainMessage(EVENT_MESSAGE_RECEIVED, data).sendToTarget();
                         }
                     } catch (IOException e) {
@@ -138,7 +140,7 @@ public class SerialService extends Service {
                     break;
                 case EVENT_SEND_MESSAGES: {
                     if (msg.obj != null) {
-                        doSendMessage(((String) msg.obj).getBytes());
+                        doSendMessage(String.valueOf(msg.obj));
                     }
                 }
                     break;
@@ -163,9 +165,8 @@ public class SerialService extends Service {
                     break;
                 case EVENT_MESSAGE_SENDED:
                     if(msg.obj != null){
-                        String data = new String((byte[])msg.obj);
                         if(mCallback != null){
-                            mCallback.onDataSend(data);
+                            mCallback.onDataSend(String.valueOf(msg.obj));
                         }
                     }
                     break;
@@ -207,12 +208,15 @@ public class SerialService extends Service {
         }
     }
 
-    private void doSendMessage(byte[] datas) {
+    private void doSendMessage(String data) {
         try {
             if (isSerialOpend()) {
-                logD(TAG, "send data :" + new String(datas));
-                mSerialPort.write(ByteBuffer.wrap(datas), datas.length);
-                mHandler.obtainMessage(EVENT_MESSAGE_SENDED, datas).sendToTarget();
+                StringBuilder sb = new StringBuilder(data);
+                sb.append('\r');
+                sb.append('\n');
+                logD(TAG, "send data :" + sb.toString() + " array : " + Arrays.toString(sb.toString().getBytes()));
+                mSerialPort.write(ByteBuffer.wrap(sb.toString().getBytes()), sb.toString().getBytes().length);
+                mHandler.obtainMessage(EVENT_MESSAGE_SENDED, data).sendToTarget();
             }
         } catch (IOException e) {
             e.printStackTrace();
