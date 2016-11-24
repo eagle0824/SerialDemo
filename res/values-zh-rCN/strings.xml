@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">串口测试</string>
+    <string name="opened">Opened</string>
+    <string name="closed">Closed</string>
+    <string name="device">Device</string>
+    <string name="baudrate">Baudrate</string>
+    <string name="send">Send</string>
+    <string name="received">Received</string>
+    <string name="clear">Clear</string>
+    <string name="send_hint">Please input send messages!</string>
+
+</resources>
